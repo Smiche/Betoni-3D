@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -228,22 +230,23 @@ public class DisplayTest {
     private static void init(boolean fullscreen) throws Exception {
         // Create a fullscreen window with 1:1 orthographic 2D projection (default)
         Display.setTitle(WINDOW_TITLE);
-        Display.setFullscreen(fullscreen);
+            Display.setFullscreen(fullscreen);
 
         // Enable vsync if we can (due to how OpenGL works, it cannot be guarenteed to always work)
         Display.setVSyncEnabled(true);
 
         // Create default display of 640x480
+        Display.setDisplayMode(new DisplayMode(600, 400));
         Display.create();
         
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
-        GLU.gluPerspective(45.0f, fAspect, 0.5f, 400.0f);
+        GLU.gluPerspective(90f, fAspect, 0.5f, 0f);
         
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
-        GL11.glViewport(0, 0, Display.getDisplayMode().getWidth() - 100, Display.getDisplayMode().getHeight() - 100);
+        GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight());
     }
 
     /**
@@ -335,34 +338,23 @@ public class DisplayTest {
         float incrementz = -1f;
         float zmax = .10f;
         float zmin = -300f;
+
+        float angle = 200;
         
         while (!finished) {
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             GL11.glLoadIdentity();
 
-            // add some arbitrary rotation and translation of the viewpoint just to make things less boring
-            anglex = (anglex + anglexInc) % 360;
-            angley = (angley + angleyInc) % 360;
-            anglez = (anglez + anglezInc) % 360;
-            if (anglez > 360) {
-                anglez = 0;
-            }
-            translatex += incrementx;
-            translatey += incrementy;
-            translatez += incrementz;
-            if (translatez <= zmin || translatez >= zmax) {
-                incrementz = -incrementz;
-            }
-            log.log(INFO,"positioning at  " + translatex + ", " + translatey + ", " + translatez + " rotation " + anglex + ", " + angley + ", " + anglez);
-            GL11.glTranslated(0, 0, translatez);
-            GL11.glTranslated(0, translatey, 0);
-            GL11.glTranslated(translatex, 0, 0);
-            GL11.glRotatef(anglez, 0.0f, 0.0f, 1.0f);
-            GL11.glRotatef(angley, 0.0f, 1.0f, 0.0f);
-            GL11.glRotatef(anglex, 1.0f, 0.0f, 0.0f);
+            if(angle > 20f)
+                angle -= 0.1;
+
+            GL11.glRotatef(angle, 0.0f, 0.0f, 1.0f);
+            GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
+            GL11.glRotatef(angle, 1.0f, 0.0f, 0.0f);
 
             // Always call Window.update(), all the time - it does some behind the
             // scenes work, and also displays the rendered output
+
             Display.update();
 
             // Check for close requests
@@ -384,7 +376,6 @@ public class DisplayTest {
 
                 // Only bother rendering if the window is visible or dirty
                 if (Display.isVisible() || Display.isDirty()) {
-                    System.err.print(".");
                     scene.render();
                 }
             }

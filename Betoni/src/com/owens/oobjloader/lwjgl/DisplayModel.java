@@ -23,8 +23,8 @@ public class DisplayModel {
     }
 
     public void render() {
-        for (int loopi = 0; loopi < vboList.size(); loopi++) {
-            vboList.get(loopi).render();
+        for (int i = 0; i < vboList.size(); i++) {
+            vboList.get(i).render();
         }
     }
 }
