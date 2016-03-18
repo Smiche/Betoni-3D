@@ -239,11 +239,16 @@ public class DisplayTest {
         Display.setDisplayMode(new DisplayMode(600, 400));
         Display.create();
         
+       // double eyeX = 0 + 1000*Math.cos(1)*Math.sin(1);
+        //double eyeY = 0 + 1000*Math.sin(1)*Math.sin(1);
+       // double eyeZ = 0 + 1000*Math.cos(1);
+       // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
+        
+        
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
-        GLU.gluPerspective(90f, fAspect, 0.5f, 0f);
-        
+        GLU.gluPerspective(45.0f, fAspect, 0.5f, 0f);
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
         GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight());
@@ -317,6 +322,7 @@ public class DisplayTest {
             
             log.log(INFO, "Adding VBO with text id " + currentTextureID + ", with " + triangleList.size() + " triangles to scene.");
             scene.addVBO(vbo);
+
         }
         log.log(INFO, "Finally ready to draw things.");
         
@@ -326,31 +332,44 @@ public class DisplayTest {
 //        float anglexInc = .25f;
 //        float angleyInc = .005f;
 //        float anglezInc = .25f;
-        float anglexInc = 1f;
-        float angleyInc = 1f;
-        float anglezInc = 1f;
+        float anglexInc = 0f;
+        float angleyInc = 0f;
+        float anglezInc = 0f;
         float translatex = 0;
         float translatey = 0f;
-        float translatez = -200f;
+        //float translatez = +200f;
         float incrementx = 0;
         float incrementy = 0;
 //        float incrementz = -0.1f;
         float incrementz = -1f;
         float zmax = .10f;
-        float zmin = -300f;
+        float zmin = 0f;
 
-        float angle = 200;
+        float angle = 90f;
         
+        float eyeX = 0.0f;
+        float eyeY = 0.0f;
+        float eyeZ = 0.0f;
+        float phi = 0.0f;
+        float theta = 0.0f;
         while (!finished) {
+        	//phi+=0.01f;
+        	theta+=0.1f;
+        	eyeX = (float) (0 + 1000*Math.cos(phi)*Math.sin(theta));
+        	eyeY = (float) (0 + 1000*Math.sin(phi)*Math.sin(theta));
+        	eyeZ = (float) (0 + 1000*Math.cos(theta));
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             GL11.glLoadIdentity();
-
-            if(angle > 20f)
-                angle -= 0.1;
-
-            GL11.glRotatef(angle, 0.0f, 0.0f, 1.0f);
-            GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
-            GL11.glRotatef(angle, 1.0f, 0.0f, 0.0f);
+           // eyeX+=0.01f;
+           // eyeY+=0.01f;
+            //eyeZ+=0.01f;
+            GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 1, 0);
+            
+                angle++;
+           //GL11.glTranslatef(0f, 0f, -1000f);
+            //GL11.glRotatef(angle, 0.0f, 0.0f, 0.0f);
+           // GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
+            //GL11.glRotatef(angle, 0.0f, 0.0f, 1.0f);
 
             // Always call Window.update(), all the time - it does some behind the
             // scenes work, and also displays the rendered output
