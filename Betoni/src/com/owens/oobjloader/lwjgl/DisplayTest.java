@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.owens.oobjloader.builder.*;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.Sys;
@@ -22,10 +23,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
-import com.owens.oobjloader.builder.Build;
-import com.owens.oobjloader.builder.Face;
-import com.owens.oobjloader.builder.FaceVertex;
-import com.owens.oobjloader.builder.Material;
 import com.owens.oobjloader.parser.Parse;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -77,7 +74,7 @@ public class DisplayTest {
             e.printStackTrace(System.err);
             Sys.alert(WINDOW_TITLE, "An error occured and the program will exit.");
         } finally {
-           // cleanup();
+            cleanup();
         }
         System.exit(0);
     }
@@ -243,8 +240,8 @@ public class DisplayTest {
         //double eyeY = 0 + 1000*Math.sin(1)*Math.sin(1);
        // double eyeZ = 0 + 1000*Math.cos(1);
        // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
-        
-        
+
+
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
@@ -275,7 +272,38 @@ public class DisplayTest {
             e.printStackTrace();
         }
         log.log(INFO, "Done parsing WaveFront OBJ file");
-        
+
+        double minX, minY, minZ, maxX, maxY, maxZ;
+
+        minX = minY = minZ = Double.MAX_VALUE;
+        maxX = maxY = maxZ = Double.MIN_VALUE;
+
+        for(VertexGeometric g: builder.verticesG) {
+            if(minX > g.x)
+                minX = g.x;
+            if(minY > g.y)
+                minY = g.y;
+            if(minZ > g.z)
+                minZ = g.z;
+
+            if(maxX < g.x)
+                maxX = g.x;
+            if(maxY < g.y)
+                maxY = g.y;
+            if(maxZ < g.z)
+                maxZ = g.z;
+        }
+
+        double centerX = (minX + maxX) / 2;
+        double centerY = (minY + maxY) / 2;
+        double centerZ = (minZ + maxZ) / 2;
+
+        for(VertexGeometric g: builder.verticesG) {
+            g.x -= centerX;
+            g.y -= centerY;
+            g.z -= centerZ;
+        }
+
         log.log(INFO, "Splitting OBJ file faces into list of faces per material");
         ArrayList<ArrayList<Face>> facesByTextureList = createFaceListsByMaterial(builder);
         log.log(INFO, "Done splitting OBJ file faces into list of faces per material, ended up with " + facesByTextureList.size() + " lists of faces.");
@@ -325,28 +353,9 @@ public class DisplayTest {
 
         }
         log.log(INFO, "Finally ready to draw things.");
-        
-        float anglex = 0;
-        float angley = 0;
-        float anglez = 0;
-//        float anglexInc = .25f;
-//        float angleyInc = .005f;
-//        float anglezInc = .25f;
-        float anglexInc = 0f;
-        float angleyInc = 0f;
-        float anglezInc = 0f;
-        float translatex = 0;
-        float translatey = 0f;
-        //float translatez = +200f;
-        float incrementx = 0;
-        float incrementy = 0;
-//        float incrementz = -0.1f;
-        float incrementz = -1f;
-        float zmax = .10f;
-        float zmin = 0f;
 
         float angle = 90f;
-        
+
         float eyeX = 0.0f;
         float eyeY = 0.0f;
         float eyeZ = 0.0f;
@@ -364,7 +373,7 @@ public class DisplayTest {
            // eyeY+=0.01f;
             //eyeZ+=0.01f;
             GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 1, 0);
-            
+
                 angle++;
            //GL11.glTranslatef(0f, 0f, -1000f);
             //GL11.glRotatef(angle, 0.0f, 0.0f, 0.0f);
