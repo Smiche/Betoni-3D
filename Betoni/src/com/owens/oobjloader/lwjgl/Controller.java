@@ -94,6 +94,8 @@ public class Controller extends JFrame{
 			    if(returnVal == JFileChooser.APPROVE_OPTION) {
 			       System.out.println("You chose to open this file: " +
 			            chooser.getSelectedFile().getAbsolutePath());
+			       fileLocation = chooser.getSelectedFile().getAbsolutePath();
+			       
 			    }
 			}
 		});
