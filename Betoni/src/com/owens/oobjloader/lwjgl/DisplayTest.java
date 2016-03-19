@@ -58,7 +58,7 @@ public class DisplayTest {
     static LinkedList<Vector3f> sphereCoords = new LinkedList<Vector3f>();
     static DisplayModel scene;
     static boolean leftButtonPressed = false;
-    static float pointSize = 20;
+    static float pointSize = 30;
     /**
      * Application init
      *
@@ -552,28 +552,34 @@ public class DisplayTest {
 
         VertexGeometric closest = new VertexGeometric(0, 0, 0);
         double distance = Integer.MAX_VALUE;
+
+        if(hits < 0)
+            hits = selection.capacity() / 4;
+
         for(int i = 0; i < hits; i++) {
             int numOfV = selection.get();
             selection.get();
             selection.get();
 
             for(int j = 0; j < numOfV; j++) {
-                VertexGeometric v = vertices.get(selection.get());
-                if(v.x == 0 && v.y == 0 && v.z == 0)
-                    continue;
-                double dist = Math.sqrt(
-                    Math.pow(camera.x - v.x, 2) +
-                    Math.pow(camera.y - v.y, 2) +
-                    Math.pow(camera.z - v.z, 2));
+                try {
+                    VertexGeometric v = vertices.get(selection.get());
+                    if (v.x == 0 && v.y == 0 && v.z == 0)
+                        continue;
+                    double dist = Math.sqrt(
+                            Math.pow(camera.x - v.x, 2) +
+                                    Math.pow(camera.y - v.y, 2) +
+                                    Math.pow(camera.z - v.z, 2));
 
-                if(dist < distance) {
-                    distance = dist;
-                    closest = v;
-                }
+                    if (dist < distance) {
+                        distance = dist;
+                        closest = v;
+                    }
+                } catch (Exception e) { }
             }
         }
 
-        log.log(INFO, hits + " points found: " + camera.x + " " + camera.y + " " + camera.z);
+        log.log(INFO, hits + " points found: " + closest.x + " " + closest.y + " " + closest.z);
 
         if(spheres.size() > 1) {
             spheres.poll();
