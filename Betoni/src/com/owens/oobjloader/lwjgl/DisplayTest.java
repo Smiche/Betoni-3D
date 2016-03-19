@@ -57,6 +57,7 @@ public class DisplayTest {
     static LinkedList<Vector3f> sphereCoords = new LinkedList<Vector3f>();
     static DisplayModel scene;
     static boolean leftButtonPressed = false;
+    static float pointSize = 20;
     /**
      * Application init
      *
@@ -478,7 +479,7 @@ public class DisplayTest {
             viewport.put(new int[]{0, 0, (int) windowWidth, (int) windowHeight});
             viewport.flip();
 
-            GLU.gluPickMatrix(screenX, screenY, 2f, 2f, viewport);
+            GLU.gluPickMatrix(screenX, screenY, 5f, 5f, viewport);
 
             GLU.gluPerspective(45.0f, windowWidth / windowHeight, 0.1f, 10000f);
 
@@ -523,7 +524,7 @@ public class DisplayTest {
         //GLU.gluLookAt((float) cameraX, (float) cameraY, (float) cameraZ, 0, 0, 0, 0, 1, 0);
         //scene.render();
 
-        GL11.glPointSize(2.0f);
+        GL11.glPointSize(pointSize);
         int s = vertices.size();
         for (int i = 0; i < s; i++) {
             VertexGeometric v = vertices.get(i);
@@ -555,10 +556,14 @@ public class DisplayTest {
                     Math.pow(camera.y - v.y, 2) +
                     Math.pow(camera.z - v.z, 2));
 
-                if(dist < distance)
+                if(dist < distance) {
+                    distance = dist;
                     closest = v;
+                }
             }
         }
+
+
 
         if(spheres.size() > 1) {
             spheres.poll();
