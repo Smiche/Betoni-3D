@@ -12,22 +12,23 @@ package com.owens.oobjloader.lwjgl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
+import java.nio.IntBuffer;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.owens.oobjloader.builder.*;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 
 import com.owens.oobjloader.parser.Parse;
+import org.lwjgl.util.glu.Sphere;
+import org.lwjgl.util.vector.Vector3f;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -38,33 +39,36 @@ import static java.util.logging.Level.SEVERE;
 
 // Based on tutorial code from http://lwjgl.org/wiki/doku.php/lwjgl/tutorials/opengl/basicopengl
 public class DisplayTest {
-    
+
     private static Logger log = Logger.getLogger(DisplayTest.class.getName());
-    
+
     public static final String WINDOW_TITLE = "Test OBJ loader";
     /**
      * Desired frame time
      */
     private static final int FRAMERATE = 60;
     private static boolean finished;
-    
+
     static float phi = 0.0f;
     static float theta = 0.0f;
     static float tilda = 0.0f;
-    static float oldX,oldY;
-    
+    static float oldX, oldY;
+    static LinkedList<Sphere> spheres = new LinkedList<Sphere>();
+    static LinkedList<Vector3f> sphereCoords = new LinkedList<Vector3f>();
+    static DisplayModel scene;
+    static boolean leftButtonPressed = false;
     /**
      * Application init
      *
      * @param args Commandline args
      */
     public static void main(String[] args) {
-        
+
         String filename = null;
         String defaultTextureMaterial = null;
-        
+
         boolean fullscreen = false;
-        
+
         for (int loopi = 0; loopi < args.length; loopi++) {
             if (null == args[loopi]) {
                 continue;
@@ -77,7 +81,7 @@ public class DisplayTest {
                 filename = args[loopi];
             }
         }
-        
+
         try {
             init(fullscreen);
             run(filename, defaultTextureMaterial);
@@ -217,13 +221,13 @@ public class DisplayTest {
         int normalCount = 0;
         for (Face face : triangleList) {
             if ((face.vertices.get(0).n != null)
-                && (face.vertices.get(1).n != null)
-                && (face.vertices.get(2).n != null)) {
+                    && (face.vertices.get(1).n != null)
+                    && (face.vertices.get(2).n != null)) {
                 normalCount++;
             }
             if ((face.vertices.get(0).t != null)
-                && (face.vertices.get(1).t != null)
-                && (face.vertices.get(2).t != null)) {
+                    && (face.vertices.get(1).t != null)
+                    && (face.vertices.get(2).t != null)) {
                 texturedCount++;
             }
         }
@@ -238,19 +242,20 @@ public class DisplayTest {
     private static void init(boolean fullscreen) throws Exception {
         // Create a fullscreen window with 1:1 orthographic 2D projection (default)
         Display.setTitle(WINDOW_TITLE);
-            Display.setFullscreen(fullscreen);
+        Display.setFullscreen(fullscreen);
 
         // Enable vsync if we can (due to how OpenGL works, it cannot be guarenteed to always work)
         Display.setVSyncEnabled(true);
 
         // Create default display of 640x480
-        Display.setDisplayMode(new DisplayMode(600, 400));
+        Display.setResizable(true);
+        Display.setDisplayMode(new DisplayMode(1024, 768));
         Display.create();
-        
-       // double eyeX = 0 + 1000*Math.cos(1)*Math.sin(1);
+
+        // double eyeX = 0 + 1000*Math.cos(1)*Math.sin(1);
         //double eyeY = 0 + 1000*Math.sin(1)*Math.sin(1);
-       // double eyeZ = 0 + 1000*Math.cos(1);
-       // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
+        // double eyeZ = 0 + 1000*Math.cos(1);
+        // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
 
 
         GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -266,10 +271,8 @@ public class DisplayTest {
      * Runs the program (the "main loop")
      */
     private static void run(String filename, String defaultTextureMaterial) {
-        DisplayModel scene = null;
-        
         scene = new DisplayModel();
-        
+
         log.log(INFO, "Parsing WaveFront OBJ file");
         Build builder = new Build();
         Parse obj = null;
@@ -283,30 +286,29 @@ public class DisplayTest {
             e.printStackTrace();
         }
         log.log(INFO, "Done parsing WaveFront OBJ file");
-        
-       
-        
+
+
         setUpLighting();
-        
-        
+
+
         double minX, minY, minZ, maxX, maxY, maxZ;
 
         minX = minY = minZ = Double.MAX_VALUE;
         maxX = maxY = maxZ = -Double.MAX_VALUE;
 
-        for(VertexGeometric g: builder.verticesG) {
-            if(minX > g.x)
+        for (VertexGeometric g : builder.verticesG) {
+            if (minX > g.x)
                 minX = g.x;
-            if(minY > g.y)
+            if (minY > g.y)
                 minY = g.y;
-            if(minZ > g.z)
+            if (minZ > g.z)
                 minZ = g.z;
 
-            if(maxX < g.x)
+            if (maxX < g.x)
                 maxX = g.x;
-            if(maxY < g.y)
+            if (maxY < g.y)
                 maxY = g.y;
-            if(maxZ < g.z)
+            if (maxZ < g.z)
                 maxZ = g.z;
         }
 
@@ -315,7 +317,7 @@ public class DisplayTest {
         double centerZ = (minZ + maxZ) / 2;
 
 
-        for(VertexGeometric g: builder.verticesG) {
+        for (VertexGeometric g : builder.verticesG) {
             g.x -= centerX;
             g.y -= centerY;
             g.z -= centerZ;
@@ -324,7 +326,7 @@ public class DisplayTest {
         log.log(INFO, "Splitting OBJ file faces into list of faces per material");
         ArrayList<ArrayList<Face>> facesByTextureList = createFaceListsByMaterial(builder);
         log.log(INFO, "Done splitting OBJ file faces into list of faces per material, ended up with " + facesByTextureList.size() + " lists of faces.");
-        
+
         TextureLoader textureLoader = new TextureLoader();
         int defaultTextureID = 0;
         if (defaultTextureMaterial != null) {
@@ -356,48 +358,43 @@ public class DisplayTest {
             ArrayList<Face> triangleList = splitQuads(faceList);
             log.log(INFO, "Calculating any missing vertex normals.");
             calcMissingVertexNormals(triangleList);
-            log.log(INFO, "Ready to build VBO of " + triangleList.size() + " triangles");;
-            
+            log.log(INFO, "Ready to build VBO of " + triangleList.size() + " triangles");
+            ;
+
             if (triangleList.size() <= 0) {
                 continue;
             }
             log.log(INFO, "Building VBO");
-            
+
             VBO vbo = VBOFactory.build(currentTextureID, triangleList);
-            
+
             log.log(INFO, "Adding VBO with text id " + currentTextureID + ", with " + triangleList.size() + " triangles to scene.");
             scene.addVBO(vbo);
 
         }
         log.log(INFO, "Finally ready to draw things.");
 
-        float angle = 90f;
-
-        float eyeX = 0.0f;
-        float eyeY = 0.0f;
-        float eyeZ = 0.0f;
+        float eyeX;
+        float eyeY;
+        float eyeZ;
         while (!finished) {
             //phi+=0.01f;
-        	//theta+=0.001f;
-        	eyeX = (float) (0 + 1000*Math.cos(phi)*Math.sin(theta));
-        	eyeY = (float) (0 + 1000*Math.sin(phi)*Math.sin(theta));
-        	eyeZ = (float) (0 + 1000*Math.cos(theta));
+            //theta+=0.001f;
+            eyeX = (float) (0 + 1000 * Math.cos(phi) * Math.sin(theta));
+            eyeY = (float) (0 + 1000 * Math.sin(phi) * Math.sin(theta));
+            eyeZ = (float) (0 + 1000 * Math.cos(theta));
+
+            pollInput(eyeX, eyeY, eyeZ, builder.verticesG);
+
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             GL11.glLoadIdentity();
-           // eyeX+=0.01f;
-           // eyeY+=0.01f;
+            // eyeX+=0.01f;
+            // eyeY+=0.01f;
             //eyeZ+=0.01f;
-            GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 1, 0);
-
-                angle++;
-           //GL11.glTranslatef(0f, 0f, -1000f);
-            //GL11.glRotatef(angle, 0.0f, 0.0f, 0.0f);
-           // GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
-            //GL11.glRotatef(angle, 0.0f, 0.0f, 1.0f);
+            GLU.gluLookAt((float) eyeX, (float) eyeY, (float) eyeZ, 0, 0, 0, 0, 1, 0);
 
             // Always call Window.update(), all the time - it does some behind the
             // scenes work, and also displays the rendered output
-                pollInput();
             Display.update();
 
             // Check for close requests
@@ -408,6 +405,7 @@ public class DisplayTest {
                 logic();
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
                 scene.render();
+                renderSpheres();
                 Display.sync(FRAMERATE);
             } // The window is not in the foreground, so we can allow other stuff to run and infrequently update
             else {
@@ -420,8 +418,21 @@ public class DisplayTest {
                 // Only bother rendering if the window is visible or dirty
                 if (Display.isVisible() || Display.isDirty()) {
                     scene.render();
+                    renderSpheres();
                 }
             }
+        }
+    }
+
+    private static void renderSpheres() {
+        for(int i = 0; i < spheres.size(); i++) {
+            GL11.glPushMatrix();
+            Vector3f coords = sphereCoords.get(i);
+            GL11.glTranslatef(coords.x, coords.y, coords.z);
+            Sphere s = new Sphere();
+            s.draw(3f, 16, 16);
+            //log.log(INFO, coords.x + " " + coords.y + " " + coords.z);
+            GL11.glPopMatrix();
         }
     }
 
@@ -443,38 +454,128 @@ public class DisplayTest {
         }
     }
 
-    private static void pollInput(){
-    	 if (Mouse.isButtonDown(0)) {
-    		    int x = Mouse.getX();
-    		    int y = Mouse.getY();
-    	 
-    		  //  System.out.println("MOUSE DOWN @ X: " + x + " Y: " + y);
-    		}
-    	 if (Mouse.isButtonDown(1)) {
- 		    int x = Mouse.getX();
- 		    int y = Mouse.getY();
- 		   if(true) {
- 		      //you might need to adjust this multiplier(0.01)
- 		      theta += (x-oldX)*0.01f;
- 		      phi   += (y-oldY)*0.01f;
- 		     
- 		   }
- 		   oldX = x; 
- 		   oldY = y; 
- 		   //glutPostRedisplay(); 
- 		   // System.out.println("MOUSE DOWN @ X: " + x + " Y: " + y);
- 		}
+    private static void pollInput(float cameraX, float cameraY, float cameraZ,List<VertexGeometric> vertices) {
+
+        if (Mouse.isButtonDown(0) && !leftButtonPressed) {
+            leftButtonPressed = true;
+
+            float windowWidth = Display.getDisplayMode().getWidth();
+            float windowHeight = Display.getDisplayMode().getHeight();
+
+            int screenX = Mouse.getX();
+            int screenY = Mouse.getY();
+
+            IntBuffer selectionBuffer = BufferUtils.createIntBuffer(20);
+            GL11.glSelectBuffer(selectionBuffer);
+            GL11.glRenderMode(GL11.GL_SELECT);
+            GL11.glInitNames();
+
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glPushMatrix();
+            GL11.glLoadIdentity();
+
+            IntBuffer viewport = BufferUtils.createIntBuffer(4);
+            viewport.put(new int[]{0, 0, (int) windowWidth, (int) windowHeight});
+            viewport.flip();
+
+            GLU.gluPickMatrix(screenX, screenY, 2f, 2f, viewport);
+
+            GLU.gluPerspective(45.0f, windowWidth / windowHeight, 0.1f, 10000f);
+
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            GL11.glPushMatrix();
+
+            // Render The NAMES for the Vertices
+            // on the NAME STACK
+            render(cameraX, cameraY, cameraZ, vertices);
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glPopMatrix();
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            // Had to ADD the following to Pop the Saved ModelView Matrix
+            // back off the matrix stack
+            GL11.glPopMatrix();
+            int hits = GL11.glRenderMode(GL11.GL_RENDER);
+            processHits(hits, selectionBuffer, new Vector3f(cameraX, cameraY, cameraZ), vertices);
+
+            log.log(INFO, "LEFT BUTTON PRESSED");
+        } else if(!Mouse.isButtonDown(0)){
+            leftButtonPressed = false;
+        }
+        if (Mouse.isButtonDown(1)) {
+            int x = Mouse.getX();
+            int y = Mouse.getY();
+            if (true) {
+                //you might need to adjust this multiplier(0.01)
+                theta += (x - oldX) * 0.01f;
+                phi += (y - oldY) * 0.01f;
+
+            }
+            oldX = x;
+            oldY = y;
+            //glutPostRedisplay();
+            // System.out.println("MOUSE DOWN @ X: " + x + " Y: " + y);
+        } else {
+            oldX = oldY = 0;
+        }
     }
+
+    private static void render(float cameraX, float cameraY, float cameraZ, List<VertexGeometric> vertices) {
+        //GLU.gluLookAt((float) cameraX, (float) cameraY, (float) cameraZ, 0, 0, 0, 0, 1, 0);
+        //scene.render();
+
+        GL11.glPointSize(2.0f);
+        int s = vertices.size();
+        for (int i = 0; i < s; i++) {
+            VertexGeometric v = vertices.get(i);
+            GL11.glPushName(i);
+            GL11.glBegin(GL11.GL_POINTS);
+            GL11.glVertex3f(v.x, v.y, v.z);
+            GL11.glEnd();
+            GL11.glPopName();
+        }
+    }
+
+    private static void processHits(int hits, IntBuffer selection, Vector3f camera, List<VertexGeometric> vertices) {
+        if(hits == 0)
+            return;
+
+        VertexGeometric closest = new VertexGeometric(0, 0, 0);
+        double distance = Integer.MAX_VALUE;
+        for(int i = 0; i < hits; i++) {
+            int numOfV = selection.get();
+            selection.get();
+            selection.get();
+
+            for(int j = 0; j < numOfV; j++) {
+                VertexGeometric v = vertices.get(selection.get());
+                if(v.x == 0 && v.y == 0 && v.z == 0)
+                    continue;
+                double dist = Math.sqrt(
+                    Math.pow(camera.x - v.x, 2) +
+                    Math.pow(camera.y - v.y, 2) +
+                    Math.pow(camera.z - v.z, 2));
+
+                if(dist < distance)
+                    closest = v;
+            }
+        }
+
+        if(spheres.size() > 1) {
+            spheres.poll();
+            sphereCoords.poll();
+        }
+        spheres.add(new Sphere());
+        sphereCoords.add(new Vector3f(closest.x, closest.y, closest.z));
+    }
+
     private static void setUpLighting() {
         GL11.glShadeModel(GL11.GL_SMOOTH);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_LIGHT0);
-        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, asFlippedFloatBuffer(new float[]{1000, 1000, 1000, 1}));
-        
+        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, asFlippedFloatBuffer(new float[]{1000, 1000, -10, 1}));
         GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glCullFace(GL11.GL_FRONT);
-        GL11.glFrontFace(GL11.GL_CW);
+        GL11.glCullFace(GL11.GL_BACK);
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE);
     }
