@@ -1,5 +1,6 @@
 package com.owens.oobjloader.lwjgl;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
@@ -9,14 +10,19 @@ import java.awt.BorderLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JButton;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.io.File;
 
 public class Controller extends JFrame{
 	
+	
+	public String fileLocation = "";
 	JLabel lblVertixes;
 	JLabel lblDistance;
+	private JButton btnOpen;
 	public void setDistance(String text){
 		lblDistance.setText(text);
 		this.revalidate();
@@ -75,5 +81,23 @@ public class Controller extends JFrame{
 		lblVertixes = new JLabel("Vertices");
 		lblVertixes.setBounds(10, 84, 234, 23);
 		getContentPane().add(lblVertixes);
+		
+		btnOpen = new JButton("Open");
+		btnOpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+			    JFileChooser chooser = new JFileChooser();
+			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+			        "OBJ & MTL files", "obj", "mtl");
+			    chooser.setFileFilter(filter);
+			    int returnVal = chooser.showOpenDialog(chooser);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			       System.out.println("You chose to open this file: " +
+			            chooser.getSelectedFile().getAbsolutePath());
+			    }
+			}
+		});
+		btnOpen.setBounds(10, 264, 89, 23);
+		getContentPane().add(btnOpen);
 	}
 }
