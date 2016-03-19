@@ -49,6 +49,7 @@ public class DisplayTest {
     private static final int FRAMERATE = 60;
     private static boolean finished;
 
+    static float radius = 1000f;
     static float phi = 0.0f;
     static float theta = 0.0f;
     static float tilda = 0.0f;
@@ -381,9 +382,9 @@ public class DisplayTest {
         while (!finished) {
             //phi+=0.01f;
             //theta+=0.001f;
-            eyeX = (float) (0 + 1000 * Math.cos(phi) * Math.sin(theta));
-            eyeY = (float) (0 + 1000 * Math.sin(phi) * Math.sin(theta));
-            eyeZ = (float) (0 + 1000 * Math.cos(theta));
+            eyeX = (float) (0 + radius * Math.cos(phi) * Math.sin(theta));
+            eyeY = (float) (0 + radius * Math.sin(phi) * Math.sin(theta));
+            eyeZ = (float) (0 + radius * Math.cos(theta));
 
             pollInput(eyeX, eyeY, eyeZ, builder.verticesG);
 
@@ -456,7 +457,16 @@ public class DisplayTest {
     }
 
     private static void pollInput(float cameraX, float cameraY, float cameraZ,List<VertexGeometric> vertices) {
-
+    	
+    	if(Mouse.hasWheel()){
+    		    int dWheel = Mouse.getDWheel();
+    		    if (dWheel < 0) {
+    		       radius+=20f;
+    		    } else if (dWheel > 0){
+    		    	radius-=20f;
+    		    }
+    	}
+    	
         if (Mouse.isButtonDown(0) && !leftButtonPressed) {
             leftButtonPressed = true;
 
