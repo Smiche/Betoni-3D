@@ -411,10 +411,10 @@ public class DisplayTest {
                 Display.sync(FRAMERATE);
             } // The window is not in the foreground, so we can allow other stuff to run and infrequently update
             else {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                }
+               // try {
+                    //Thread.sleep(100);
+               // } catch (InterruptedException e) {
+                //}
                 logic();
 
                 // Only bother rendering if the window is visible or dirty
@@ -427,15 +427,25 @@ public class DisplayTest {
     }
 
     private static void renderSpheres() {
+        int colour = 150;
+        float red = (float) (colour >> 24 & 255) / 255.0F;
+        float green = (float) (colour >> 16 & 255) / 255.0F;
+        float blue = (float) (colour >> 8 & 255) / 255.0F;
+        float alpha = (float) (colour & 255) / 255.0F;  
+        
+        GL11.glColor4f(255f, 0, 0, 0f);
+        
         for(int i = 0; i < spheres.size(); i++) {
             GL11.glPushMatrix();
             Vector3f coords = sphereCoords.get(i);
             GL11.glTranslatef(coords.x, coords.y, coords.z);
             Sphere s = new Sphere();
+            
             s.draw(3f, 16, 16);
             //log.log(INFO, coords.x + " " + coords.y + " " + coords.z);
             GL11.glPopMatrix();
         }
+        GL11.glColor4f(1,1,1,1);
     }
 
     /**
@@ -455,6 +465,12 @@ public class DisplayTest {
             finished = true;
         }
     }
+    
+    static float sqrDistPP3D(float[] v1, float[] v2) {
+        return (v1[0] - v2[0]) * (v1[0] - v2[0]) +
+               (v1[1] - v2[1]) * (v1[1] - v2[1]) +
+               (v1[2] - v2[2]) * (v1[2] - v2[2]);
+   }
 
     private static void pollInput(float cameraX, float cameraY, float cameraZ,List<VertexGeometric> vertices) {
     	
