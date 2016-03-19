@@ -9,37 +9,31 @@ package com.owens.oobjloader.lwjgl;
 // In addition this code may also be used under the "unlicense" described
 // at http://unlicense.org/ .  See the file UNLICENSE in the repo.
 
+import com.owens.oobjloader.builder.*;
+import com.owens.oobjloader.parser.Parse;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.Sys;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
+import org.lwjgl.util.glu.Sphere;
+import org.lwjgl.util.vector.Vector3f;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.owens.oobjloader.builder.*;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
-import org.lwjgl.util.glu.GLU;
-import org.lwjgl.Sys;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-
-import com.owens.oobjloader.parser.Parse;
-
-import org.lwjgl.util.glu.Sphere;
-import org.lwjgl.util.vector.Vector3f;
-import org.newdawn.slick.TrueTypeFont;
-
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
@@ -56,7 +50,6 @@ public class DisplayTest {
     private static final int FRAMERATE = 60;
     private static boolean finished;
 
-	static TrueTypeFont font;
     static float radius = 1000f;
     static float phi = 0.0f;
     static float theta = 0.0f;
@@ -271,17 +264,11 @@ public class DisplayTest {
    
         Display.setInitialBackground(0.50f, 0.60f, 0.55f);
         Display.create();
-
-        // double eyeX = 0 + 1000*Math.cos(1)*Math.sin(1);
-        //double eyeY = 0 + 1000*Math.sin(1)*Math.sin(1);
-        // double eyeZ = 0 + 1000*Math.cos(1);
-        // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
         
         Display.setTitle("Betoni demo");
        
         GL11.glMatrixMode(GL11.GL_PROJECTION);       
         Font awtFont = new Font("Times New Roman", Font.BOLD, 24); //name, style (PLAIN, BOLD, or ITALIC), size
-    	font = new TrueTypeFont(awtFont, false); //base Font, anti-aliasing true/false
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
         GLU.gluPerspective(45.0f, fAspect, 0.1f, 10000f);
