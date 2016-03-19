@@ -17,7 +17,7 @@ public class Controller extends JFrame{
 	
 	JLabel lblVertixes;
 	JLabel lblDistance;
-	public void setText(String text){
+	public void setDistance(String text){
 		lblDistance.setText(text);
 		this.revalidate();
 		this.repaint();
