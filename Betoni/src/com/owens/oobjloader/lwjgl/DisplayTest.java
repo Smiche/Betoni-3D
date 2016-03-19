@@ -49,6 +49,7 @@ public class DisplayTest {
      */
     private static final int FRAMERATE = 60;
     private static boolean finished;
+    public static boolean isRunning = false;
 
     static float radius = 1000f;
     static float phi = 0.0f;
@@ -61,6 +62,7 @@ public class DisplayTest {
     static boolean leftButtonPressed = false;
     static JTextField field;
     static Controller frame;
+    static double ratio = -1;
     
     static float pointSize = 30;
     /**
@@ -69,39 +71,9 @@ public class DisplayTest {
      * @param args Commandline args
      */
     public static void main(String[] args) {
-    	
     	frame = new Controller();
     	frame.setVisible(true);
-    	frame.setBounds(100, 100, 260, 360);
-    	
-        String filename = null;
-        String defaultTextureMaterial = null;
-
-        boolean fullscreen = false;
-
-        for (int loopi = 0; loopi < args.length; loopi++) {
-            if (null == args[loopi]) {
-                continue;
-            }
-            if (args[loopi].equals("-fullscreen")) {
-                fullscreen = true;
-            } else if (args[loopi].equals("-defaulttexture") && args.length >= (loopi + 1)) {
-                defaultTextureMaterial = args[++loopi];
-            } else {
-                filename = args[loopi];
-            }
-        }
-
-        try {
-            init(fullscreen);
-            run(filename, defaultTextureMaterial);
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            Sys.alert(WINDOW_TITLE, "An error occured and the program will exit.");
-        } finally {
-            cleanup();
-        }
-        System.exit(0);
+    	frame.setBounds(100, 100, 300, 360);
     }
 
     // iterate over face list from builder, and break it up into a set of face lists by material, i.e. each for each face list, all faces in that specific list use the same material
@@ -249,7 +221,7 @@ public class DisplayTest {
     /**
      * @throws Exception if init fails
      */
-    private static void init(boolean fullscreen) throws Exception {
+    public static void init(boolean fullscreen) throws Exception {
         // Create a fullscreen window with 1:1 orthographic 2D projection (default)
         Display.setTitle(WINDOW_TITLE);
         Display.setFullscreen(fullscreen);
@@ -283,8 +255,9 @@ public class DisplayTest {
     /**
      * Runs the program (the "main loop")
      */
-    private static void run(String filename, String defaultTextureMaterial) {
+    public static void  run(String filename, String defaultTextureMaterial) {
         scene = new DisplayModel();
+        isRunning = true;
         log.log(INFO, "Parsing WaveFront OBJ file");
         Build builder = new Build();
         Parse obj = null;
@@ -299,6 +272,7 @@ public class DisplayTest {
         }
         log.log(INFO, "Done parsing WaveFront OBJ file");
 
+        frame.setVCount(builder.verticesG.size());
 
         setUpLighting();
 
@@ -441,33 +415,50 @@ public class DisplayTest {
     }
 
     private static void renderSpheres() {
-        int colour = 150;
-        float red = (float) (colour >> 24 & 255) / 255.0F;
-        float green = (float) (colour >> 16 & 255) / 255.0F;
-        float blue = (float) (colour >> 8 & 255) / 255.0F;
-        float alpha = (float) (colour & 255) / 255.0F;  
-        
         GL11.glColor4f(255f, 0, 0, 0f);
         
         for(int i = 0; i < spheres.size(); i++) {
             GL11.glPushMatrix();
-            Vector3f coords = sphereCoords.get(i);
-            GL11.glTranslatef(coords.x, coords.y, coords.z);
-            Sphere s = new Sphere();
-            
-            s.draw(3f, 16, 16);
-            //log.log(INFO, coords.x + " " + coords.y + " " + coords.z);
+                Vector3f coords = sphereCoords.get(i);
+                GL11.glTranslatef(coords.x, coords.y, coords.z);
+                Sphere s = new Sphere();
+
+                s.draw(3f, 16, 16);
+                //log.log(INFO, coords.x + " " + coords.y + " " + coords.z);
             GL11.glPopMatrix();
         }
+        if(spheres.size() > 1) {
+            Vector3f v0 = sphereCoords.get(0);
+            Vector3f v1 = sphereCoords.get(1);
+
+            GL11.glColor4f(255f, 0, 0, 0);
+            GL11.glLineWidth(1.0f);
+            GL11.glBegin(GL11.GL_LINE_STRIP);
+                GL11.glVertex3f(v0.x, v0.y, v0.z);
+                GL11.glVertex3f(v1.x, v1.y, v1.z);
+            GL11.glEnd();
+        }
+
         GL11.glColor4f(1,1,1,1);
     }
 
     /**
      * Do any cleanup
      */
-    private static void cleanup() {
+    public static void cleanup() {
         // Close the window
         Display.destroy();
+        finished = false;
+        float radius = 1000f;
+        float phi = 0.0f;
+        float theta = 0.0f;
+        float tilda = 0.0f;
+        float oldX, oldY;
+        spheres = new LinkedList<Sphere>();
+        sphereCoords = new LinkedList<Vector3f>();
+        leftButtonPressed = false;
+        ratio = -1;
+        isRunning = false;
     }
 
     /**
@@ -480,10 +471,10 @@ public class DisplayTest {
         }
     }
     
-    static float sqrDistPP3D(float[] v1, float[] v2) {
-        return (v1[0] - v2[0]) * (v1[0] - v2[0]) +
-               (v1[1] - v2[1]) * (v1[1] - v2[1]) +
-               (v1[2] - v2[2]) * (v1[2] - v2[2]);
+    static double sqrDistPP3D(Vector3f v1, Vector3f v2) {
+        return Math.sqrt((v1.x - v2.x) * (v1.x - v2.x) +
+               (v1.y - v2.y) * (v1.y - v2.y) +
+               (v1.z - v2.z) * (v1.z - v2.z));
    }
 
     private static void pollInput(float cameraX, float cameraY, float cameraZ,List<VertexGeometric> vertices) {
@@ -598,8 +589,8 @@ public class DisplayTest {
                         continue;
                     double dist = Math.sqrt(
                             Math.pow(camera.x - v.x, 2) +
-                                    Math.pow(camera.y - v.y, 2) +
-                                    Math.pow(camera.z - v.z, 2));
+                            Math.pow(camera.y - v.y, 2) +
+                            Math.pow(camera.z - v.z, 2));
 
                     if (dist < distance) {
                         distance = dist;
@@ -617,6 +608,18 @@ public class DisplayTest {
         }
         spheres.add(new Sphere());
         sphereCoords.add(new Vector3f(closest.x, closest.y, closest.z));
+
+        //Update distance
+        if(spheres.size() > 1) {
+            distance = DisplayTest.sqrDistPP3D(
+                    DisplayTest.sphereCoords.get(0),
+                    DisplayTest.sphereCoords.get(1)
+            );
+
+            if(ratio > 0) {
+                frame.setDistance(distance * ratio);
+            }
+        }
     }
 
     private static void setUpLighting() {
