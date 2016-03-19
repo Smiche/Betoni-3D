@@ -27,12 +27,19 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import com.owens.oobjloader.parser.Parse;
+
 import org.lwjgl.util.glu.Sphere;
 import org.lwjgl.util.vector.Vector3f;
+import org.newdawn.slick.TrueTypeFont;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
@@ -49,6 +56,7 @@ public class DisplayTest {
     private static final int FRAMERATE = 60;
     private static boolean finished;
 
+	static TrueTypeFont font;
     static float radius = 1000f;
     static float phi = 0.0f;
     static float theta = 0.0f;
@@ -59,13 +67,20 @@ public class DisplayTest {
     static DisplayModel scene;
     static boolean leftButtonPressed = false;
     static float pointSize = 20;
+    static JTextField field;
+    static Controller frame;
+    
     /**
      * Application init
      *
      * @param args Commandline args
      */
     public static void main(String[] args) {
-
+    	
+    	frame = new Controller();
+    	frame.setVisible(true);
+    	frame.setBounds(100, 100, 260, 360);
+    	
         String filename = null;
         String defaultTextureMaterial = null;
 
@@ -251,21 +266,30 @@ public class DisplayTest {
 
         // Create default display of 640x480
         Display.setResizable(true);
-        Display.setDisplayMode(new DisplayMode(1024, 768));
+        Display.setDisplayMode(new DisplayMode(1024, 768)); 
+        
+   
+        Display.setInitialBackground(0.50f, 0.60f, 0.55f);
         Display.create();
 
         // double eyeX = 0 + 1000*Math.cos(1)*Math.sin(1);
         //double eyeY = 0 + 1000*Math.sin(1)*Math.sin(1);
         // double eyeZ = 0 + 1000*Math.cos(1);
         // GLU.gluLookAt((float)eyeX, (float)eyeY, (float)eyeZ, 0, 0, 0, 0, 0, 1);
-
-
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        
+        Display.setTitle("Betoni demo");
+       
+        GL11.glMatrixMode(GL11.GL_PROJECTION);       
+        Font awtFont = new Font("Times New Roman", Font.BOLD, 24); //name, style (PLAIN, BOLD, or ITALIC), size
+    	font = new TrueTypeFont(awtFont, false); //base Font, anti-aliasing true/false
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
         GLU.gluPerspective(45.0f, fAspect, 0.1f, 10000f);
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glLoadIdentity();
+        GL11.glLoadIdentity();	
+        //GL11.glColor3f(1.0f, 1.0f, 1.0f);
+      
+    	
         GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight());
     }
 
@@ -274,7 +298,6 @@ public class DisplayTest {
      */
     private static void run(String filename, String defaultTextureMaterial) {
         scene = new DisplayModel();
-
         log.log(INFO, "Parsing WaveFront OBJ file");
         Build builder = new Build();
         Parse obj = null;
@@ -291,7 +314,6 @@ public class DisplayTest {
 
 
         setUpLighting();
-
 
         double minX, minY, minZ, maxX, maxY, maxZ;
 
@@ -405,9 +427,14 @@ public class DisplayTest {
             } // The window is in the foreground, so render!
             else if (Display.isActive()) {
                 logic();
+                
+                
+                
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+                                          
                 scene.render();
-                renderSpheres();
+                renderSpheres();               
+                
                 Display.sync(FRAMERATE);
             } // The window is not in the foreground, so we can allow other stuff to run and infrequently update
             else {
