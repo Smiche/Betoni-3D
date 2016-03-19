@@ -17,18 +17,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.owens.oobjloader.builder.*;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import com.owens.oobjloader.parser.Parse;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 
@@ -43,7 +47,12 @@ public class DisplayTest {
      */
     private static final int FRAMERATE = 60;
     private static boolean finished;
-
+    
+    static float phi = 0.0f;
+    static float theta = 0.0f;
+    static float tilda = 0.0f;
+    static float oldX,oldY;
+    
     /**
      * Application init
      *
@@ -247,7 +256,7 @@ public class DisplayTest {
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
         float fAspect = (float) Display.getDisplayMode().getWidth() / (float) Display.getDisplayMode().getHeight();
-        GLU.gluPerspective(45.0f, fAspect, 0.5f, 0f);
+        GLU.gluPerspective(45.0f, fAspect, 0.1f, 10000f);
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
         GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight());
@@ -274,9 +283,12 @@ public class DisplayTest {
             e.printStackTrace();
         }
         log.log(INFO, "Done parsing WaveFront OBJ file");
-
+        
+       
+        
         setUpLighting();
-
+        
+        
         double minX, minY, minZ, maxX, maxY, maxZ;
 
         minX = minY = minZ = Double.MAX_VALUE;
@@ -364,11 +376,9 @@ public class DisplayTest {
         float eyeX = 0.0f;
         float eyeY = 0.0f;
         float eyeZ = 0.0f;
-        float phi = 0.0f;
-        float theta = 0.0f;
         while (!finished) {
             //phi+=0.01f;
-        	theta+=0.001f;
+        	//theta+=0.001f;
         	eyeX = (float) (0 + 1000*Math.cos(phi)*Math.sin(theta));
         	eyeY = (float) (0 + 1000*Math.sin(phi)*Math.sin(theta));
         	eyeZ = (float) (0 + 1000*Math.cos(theta));
@@ -387,7 +397,7 @@ public class DisplayTest {
 
             // Always call Window.update(), all the time - it does some behind the
             // scenes work, and also displays the rendered output
-
+                pollInput();
             Display.update();
 
             // Check for close requests
@@ -433,15 +443,38 @@ public class DisplayTest {
         }
     }
 
+    private static void pollInput(){
+    	 if (Mouse.isButtonDown(0)) {
+    		    int x = Mouse.getX();
+    		    int y = Mouse.getY();
+    	 
+    		  //  System.out.println("MOUSE DOWN @ X: " + x + " Y: " + y);
+    		}
+    	 if (Mouse.isButtonDown(1)) {
+ 		    int x = Mouse.getX();
+ 		    int y = Mouse.getY();
+ 		   if(true) {
+ 		      //you might need to adjust this multiplier(0.01)
+ 		      theta += (x-oldX)*0.01f;
+ 		      phi   += (y-oldY)*0.01f;
+ 		     
+ 		   }
+ 		   oldX = x; 
+ 		   oldY = y; 
+ 		   //glutPostRedisplay(); 
+ 		   // System.out.println("MOUSE DOWN @ X: " + x + " Y: " + y);
+ 		}
+    }
     private static void setUpLighting() {
         GL11.glShadeModel(GL11.GL_SMOOTH);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_LIGHT0);
-        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, asFlippedFloatBuffer(new float[]{1000, 1000, 1000, 1}));/*
+        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, asFlippedFloatBuffer(new float[]{1000, 1000, 1000, 1}));
+        
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_FRONT);
-        GL11.glFrontFace(GL11.GL_CW);*/
+        GL11.glFrontFace(GL11.GL_CW);
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE);
     }
