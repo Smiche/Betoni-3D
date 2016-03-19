@@ -70,7 +70,7 @@ public class Controller extends JFrame{
 		getContentPane().add(lblNotCalibrated);
 
 		final JTextField calibrateField = new JTextField("0");
-		calibrateField.setBounds(155, 265, 89, 23);
+		calibrateField.setBounds(132, 264, 89, 23);
 		getContentPane().add(calibrateField);
 
 		JButton btnCalibrate = new JButton("Calibrate");
