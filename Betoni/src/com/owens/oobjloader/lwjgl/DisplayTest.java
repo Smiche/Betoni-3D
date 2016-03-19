@@ -476,7 +476,7 @@ public class DisplayTest {
             int screenX = Mouse.getX();
             int screenY = Mouse.getY();
 
-            IntBuffer selectionBuffer = BufferUtils.createIntBuffer(20);
+            IntBuffer selectionBuffer = BufferUtils.createIntBuffer(100);
             GL11.glSelectBuffer(selectionBuffer);
             GL11.glRenderMode(GL11.GL_SELECT);
             GL11.glInitNames();
@@ -573,7 +573,7 @@ public class DisplayTest {
             }
         }
 
-
+        log.log(INFO, hits + " points found: " + camera.x + " " + camera.y + " " + camera.z);
 
         if(spheres.size() > 1) {
             spheres.poll();
