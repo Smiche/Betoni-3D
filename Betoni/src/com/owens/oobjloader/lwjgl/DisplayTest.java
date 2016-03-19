@@ -11,11 +11,13 @@ package com.owens.oobjloader.lwjgl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.owens.oobjloader.builder.*;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.Sys;
@@ -273,10 +275,12 @@ public class DisplayTest {
         }
         log.log(INFO, "Done parsing WaveFront OBJ file");
 
+        setUpLighting();
+
         double minX, minY, minZ, maxX, maxY, maxZ;
 
         minX = minY = minZ = Double.MAX_VALUE;
-        maxX = maxY = maxZ = Double.MIN_VALUE;
+        maxX = maxY = maxZ = -Double.MAX_VALUE;
 
         for(VertexGeometric g: builder.verticesG) {
             if(minX > g.x)
@@ -297,6 +301,7 @@ public class DisplayTest {
         double centerX = (minX + maxX) / 2;
         double centerY = (minY + maxY) / 2;
         double centerZ = (minZ + maxZ) / 2;
+
 
         for(VertexGeometric g: builder.verticesG) {
             g.x -= centerX;
@@ -362,8 +367,8 @@ public class DisplayTest {
         float phi = 0.0f;
         float theta = 0.0f;
         while (!finished) {
-        	//phi+=0.01f;
-        	theta+=0.1f;
+            //phi+=0.01f;
+        	theta+=0.001f;
         	eyeX = (float) (0 + 1000*Math.cos(phi)*Math.sin(theta));
         	eyeY = (float) (0 + 1000*Math.sin(phi)*Math.sin(theta));
         	eyeZ = (float) (0 + 1000*Math.cos(theta));
@@ -391,7 +396,7 @@ public class DisplayTest {
             } // The window is in the foreground, so render!
             else if (Display.isActive()) {
                 logic();
-                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT);
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
                 scene.render();
                 Display.sync(FRAMERATE);
             } // The window is not in the foreground, so we can allow other stuff to run and infrequently update
@@ -426,6 +431,25 @@ public class DisplayTest {
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
             finished = true;
         }
-        
+    }
+
+    private static void setUpLighting() {
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_LIGHT0);
+        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, asFlippedFloatBuffer(new float[]{1000, 1000, 1000, 1}));/*
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_FRONT);
+        GL11.glFrontFace(GL11.GL_CW);*/
+        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+        GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE);
+    }
+
+    public static FloatBuffer asFlippedFloatBuffer(float... values) {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(values.length);
+        buffer.put(values);
+        buffer.flip();
+        return buffer;
     }
 }
